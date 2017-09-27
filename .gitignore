@@ -1,3 +1,4 @@
 # ignore all logs
 *.log
 **/source_data
+**/not_use

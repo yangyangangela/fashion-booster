@@ -2,3 +2,4 @@
 *.log
 **/source_data
 **/not_use
+**/.ipynb_checkpointse

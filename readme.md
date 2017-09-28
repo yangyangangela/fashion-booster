@@ -76,7 +76,7 @@ In the following graph, I intentionally delete the feature *sign_in_counts* b/c 
 feature is too strong that the classification accuracy could be as high as 0.99 when adding
 it back in. This feature dims the importance of all other features.
 
-![confusion_matrix](img/task2/confusion_matrix.png)
+![confusion_matrix](img/task2/confusion_matrix.png =250x)
 
 ### Feature Importance
 

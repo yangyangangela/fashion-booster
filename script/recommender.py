@@ -9,16 +9,19 @@ Date: 2017-09-19
 import psycopg2
 import pandas as pd
 import numpy as np
-from sklearn import preprocessing
 import pandas as pandas
 import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize, RegexpTokenizer
 from nltk.corpus import stopwords
-from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 import enchant
 import re
 from nltk.stem.lancaster import LancasterStemmer
 from sklearn.metrics.pairwise import linear_kernel
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+from sklearn import preprocessing
+from pyemd import emd
+
 
 # Connection to DB
 DBNAME = 'mylocaldb' 
@@ -27,15 +30,15 @@ CON = None
 CON = psycopg2.connect(database = DBNAME, user = USERNAME)
 
 # base for brand_matrix, df with tokens
-BASE_PATH = "/Users/yangyang/Documents/Study/Insight/project/code/source_data"
+BASE_PATH = "/Users/yangyang/Documents/Study/Insight/project/yang_insight_project/source_data"
 
 # SQL query
-ITEMS="""
+ITEMS = """
 SELECT id, description,item_type,size,brand
 FROM items
 """
 
-BRAND_RENTALS="""
+BRAND_RENTALS = """
 SELECT rental_items.item_id, rental_items.rental_id, 
     rentals.renter_id, UPPER(items.brand) as brand
 FROM rental_items
@@ -46,7 +49,7 @@ LEFT JOIN rentals
 """
 
 # Constants to correct brands
-SEARCH_N_REPLACE= {'LAURENT':'YVES SAINT LAURENT',
+SEARCH_N_REPLACE = {'LAURENT':'YVES SAINT LAURENT',
                     'GABBANA':'DOLCE GABBANA',
                     'PORTRAIT':'SELF PORTRAIT',
                     'BCBG':'BCBG',
@@ -140,24 +143,22 @@ def description_tokenizer(item_df):
     """
     # Only keep adv, adj, and noun
     keep_list = [
-        'JJ',#  adjective   'big'
-        'JJR',# adjective, comparative  'bigger'
-        'JJS',# adjective, superlative  'biggest'
-        'NN',#  noun, singular 'desk'
-        'NNS',# noun plural 'desks'
-        'NNP',# proper noun, singular   'Harrison'
-        'NNPS',#    proper noun, plural 'Americans'
+        'JJ',  # adjective 'big'
+        'JJR',  # adjective, comparative  'bigger'
+        'JJS',  # adjective, superlative  'biggest'
+        'NN',  # noun, singular 'desk'
+        'NNS',  # noun plural 'desks'
+        'NNP',  # proper noun, singular   'Harrison'
+        'NNPS'  # proper noun, plural 'Americans'
     ]
 
-
-    eng_checker = enchant.Dict("en_US")# check english
-    tokenizer = nltk.tokenize.RegexpTokenizer(r'\w+')# remove number
-    lemmatizer = nltk.stem.WordNetLemmatizer()# plural to singular
+    eng_checker = enchant.Dict("en_US")  # check english
+    tokenizer = nltk.tokenize.RegexpTokenizer(r'\w+')  # remove number
+    lemmatizer = nltk.stem.WordNetLemmatizer()  # plural to singular
     stop_words = set(stopwords.words('english'))
-    st = LancasterStemmer()# trace the stem of words
+    st = LancasterStemmer()  # trace the stem of words
 
-    
-    def tokenizer_pipline(x):
+    def tokenizer_pipeline(x):
         # remove numbers
         x = re.sub(r'\d+','',x).lower()
 
@@ -178,19 +179,15 @@ def description_tokenizer(item_df):
                 'anywhere','cc','cm','dress','skirt','shoe','top','bottom','pants']
     
         # remove stop_words, non-english
-        word_list = [ w for w in filtered_tokens if 
-                    ((not w in stop_words) and eng_checker.check(w) and (not w in useless_words))]
+        word_list = [w for w in filtered_tokens if
+                    ((w not in stop_words) and eng_checker.check(w) and (w not in useless_words))]
     
         # convert word list to string
         str1 = ' '.join(str(e) for e in word_list)    
         return str1
     
-    item_df['tokens'] = item_df['description'].apply(tokenizer_pipline)
+    item_df['tokens'] = item_df['description'].apply(tokenizer_pipeline)
     return item_df
-
-
-
-
 
 
 class brand_similarity(object):
@@ -201,14 +198,14 @@ class brand_similarity(object):
     def __init__(self):
         self.data = load_brand_data()
 
-    def top_brand_ls(self,thres=5):
+    def top_brand_ls(self,thres=10):
         """
-        Return the brand name list for occurence>5.
+        Return the brand name list for occurence>thres.
         """
         top_brands = self.data['brand'].value_counts()
         return top_brands[top_brands>thres].index.tolist()
 
-    def brand_cooccur_matrix(self,thres=5):
+    def brand_cooccur_matrix(self,thres=10):
         """
         Return the co_occurence matrix of brands, given the rentals>thres.
         """
@@ -240,14 +237,22 @@ class brand_similarity(object):
 
         brand_list = le.classes_.tolist()
         brand_matrix = pd.DataFrame(A,index=brand_list,columns=brand_list)
-        return brand_matrix
 
+        # sort the brand by rental history
+        brand_matrix['total'] = brand_matrix.sum()
+        brand_matrix = brand_matrix.sort_values(['total'], ascending=False)
+        brand_matrix.drop('total', axis=1)
+
+        # normalize to get the probability
+        brand_matrix = brand_matrix[brand_matrix.index.tolist()]
+        brand_matrix = brand_matrix.div(brand_matrix.sum())
+        return brand_matrix
 
 
 class customized_recommender(object):
     def __init__(self, item_df = None):
         """
-        Initilize
+        Initialize
         - the CR will automatically load item_df
 
         """
@@ -263,11 +268,10 @@ class customized_recommender(object):
         self.item = 0
         self.mask = None
 
-    def __select_brands(self,the_brand,brand_number=10):
+    def __select_brands(self,the_brand,brand_number=5):
         """
         Return a T/F mask to select top brand_number related items.
         If the brand is not in brand_matrix, return the top popular brands.
-
         """
         BRAND_MATRIX_PATH = BASE_PATH + "/brand_matrix.csv"
         brand_cooccur_matrix = pd.read_csv(BRAND_MATRIX_PATH,index_col=0)
@@ -280,7 +284,6 @@ class customized_recommender(object):
             bls = brand_cooccur_matrix.max().nlargest(brand_number).index.tolist()
 
         return self.df.brand.isin( bls )
-
 
     def __select_type_and_size(self,the_type,the_size):
         """
@@ -309,8 +312,6 @@ class customized_recommender(object):
                     (self.df.size_number<=the_size+vari)) | 
                     (self.df.item_type.isin(NO_SIZE))
                     )
-
- 
         return mask
 
     def filter_recommendation(self, given_item, type_n_size=True, brands=True, brand_number=3):
@@ -340,35 +341,32 @@ class customized_recommender(object):
             self.mask = test_mask
             return test_mask
 
-
-    def recommend_items(self,top=5):
+    def recommend_items(self,top=10,word_model=None):
         """
         Output the df of recommended items based on current self.item.
 
         """
-
         rdf = self.df[self.mask]
 
         # return all filtered stuff when no enough items to recommend.
-        if len(rdf)<=top:
+        if len(rdf) <= top:
             return rdf.index.tolist()
 
         # calculate the similarity between items
-        S = self.similarity(self.item, rdf.index.tolist())
+        S = self.similarity(self.item, rdf.index.tolist(),word_model)
 
-        # find the item id of the top 5 colomns
-        return rdf.loc[S['score'].nlargest(top).index.tolist(),:]
+        # find the item id of the top 5 columns
+        return rdf.loc[S['score'].nlargest(top).index.tolist(),:].join(S,how='left')
 
-
-
-    def similarity(self,item, itemLs):
+    def similarity_old(self, item, itemLs):
         """
         Return the similarity series between an item and an Itemlist.
+        This is the old method using the cosine similarity between word-count vector
         """
         count_vect = CountVectorizer()
         TOKEN_PATH = BASE_PATH + "/item_df_n_tokens.csv"
 
-        if not item in itemLs:
+        if item not in itemLs:
             itemLs.append(item)
 
         # load tokens
@@ -388,15 +386,84 @@ class customized_recommender(object):
 
         return pd.DataFrame(cosine_similarities,index=data.index,columns=['score'])
 
+    def similarity(self ,item, itemLs, word_model):
+        """
+        Input:
+            item: item id
+            itemLs: a list of item ids.
+            word_model: by default is word2vec from google.
+        Return the similarity series between an item and an Itemlist.
+        """
+        # load tokens
+        token_path = BASE_PATH + "/item_df_n_tokens.csv"
+        df = pd.read_csv(token_path,index_col=0)
 
+        # take the inverse of distance as similarity score
+        inverse_emd = pd.DataFrame(index=itemLs,columns=['score'])
 
+        for i in itemLs:
+            # try:
+            l1 = df.loc[item,'tokens'].split()
+            l2 = df.loc[i,'tokens'].split()
+            d = self.description_distance(l1,l2,word_model)
+            if d != 0:
+                inverse_emd.ix[i,'score'] = 1 / d
+            else:
+                inverse_emd.ix[i,'score'] = 10**6
+            # except:
+            #     # if tokens is not complete and causing errors
+            #     inverse_emd.ix[i, 'score'] = 0
 
+        inverse_emd['score'] = pd.to_numeric(inverse_emd['score'], errors='ignore')
+        return inverse_emd
 
+    def word_similarity(self, w1, w2, word_model):
+        """
+        Return the cosine similarity (a float) between two words.
+        """
+        v1 = word_model.wv[w1]
+        v2 = word_model.wv[w2]
+        return cosine_similarity([v1],[v2])[0][0]
 
+    def description_distance(self, l1, l2, word_model):
+        """
+        Input:
+            l1: list of words
+            l2: list of words
+            model: by default google word2vec model
 
+        Return the Earth mover's distance between two list of words
+        """
+        # try:
+        word_dict = list(set(l1+l2))
+        first_histogram = np.array([float(l1.count(w)) for w in word_dict])
+        second_histogram = np.array([float(l2.count(w)) for w in word_dict])
 
+        # calculate the word-2-word similarity
+        nw = len(word_dict)
+        # ww_sim = np.zeros((nw,nw))
+        # for i,w1 in enumerate(word_dict):
+        #     ww_sim[i,i] = 1
+        #     for j,w2 in enumerate(word_dict[i+1:]):
+        #         ww_sim[i,i+j+1] = self.word_similarity(w1,w2,word_model)
+        #         ww_sim[i+j+1,i] = ww_sim[i,i+j+1]
+        # ww_distance = 1-ww_sim
 
+        ww_distance = np.zeros((nw,nw))
+        for i,w1 in enumerate(word_dict):
+            ww_sim[i,i] = 1
+            for j,w2 in enumerate(word_dict[i+1:]):
+                v1 = word_model.wv[w1]
+                v2 = word_model.wv[w2]
+                print(np.linalg.norm(v1-v2))
+                ww_distance[i+j+1,i] = np.linalg.norm(v1-v2)
+                ww_distance[i,i+j+1] = np.linalg.norm(v1-v2)
+        return emd(first_histogram, second_histogram, ww_distance)
 
+        # except:
+        #     raise
+        #     # if the two lists are identical
+        #     return 1
 
 
 

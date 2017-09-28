@@ -1,12 +1,19 @@
 # Fashion Booster
 
 ## What is Fashion Booster?
+Fashion Booster is a consulting project that I did for a fashion E-commerce
+startup. This starup is an online marketplace,
+ enabling women to lend or rent fashion items 
+ including vacation bags, accessories, shoes, and clothes.
+It is an *Airbnb of women's closets*.
 
+In this project, I analyzed their user data and shopping data 
+[Task 1: Market Analysis](#t1)
 
 
 ## Task 1: Market Analysis
 First, I performed a series of market analysis using my client's database. 
-![market_analysis](img/task2/market_analysis.png)
+![market_analysis](img/task1/market_analysis.png)
 
 
 

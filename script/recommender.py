@@ -350,7 +350,8 @@ class customized_recommender(object):
 
         # return all filtered stuff when no enough items to recommend.
         if len(rdf) <= top:
-            return rdf.index.tolist()
+            print("not enough items to compare similarity")
+            return rdf
 
         # calculate the similarity between items
         S = self.similarity(self.item, rdf.index.tolist(),word_model)
@@ -402,17 +403,18 @@ class customized_recommender(object):
         inverse_emd = pd.DataFrame(index=itemLs,columns=['score'])
 
         for i in itemLs:
-            # try:
-            l1 = df.loc[item,'tokens'].split()
-            l2 = df.loc[i,'tokens'].split()
-            d = self.description_distance(l1,l2,word_model)
-            if d != 0:
-                inverse_emd.ix[i,'score'] = 1 / d
-            else:
-                inverse_emd.ix[i,'score'] = 10**6
-            # except:
-            #     # if tokens is not complete and causing errors
-            #     inverse_emd.ix[i, 'score'] = 0
+            try:
+                l1 = df.loc[item,'tokens'].split()
+                l2 = df.loc[i,'tokens'].split()
+                d = self.description_distance(l1,l2,word_model)
+                if d != 0:
+                    inverse_emd.ix[i,'score'] = 1 / d
+                else:
+                    # identical description are set to have similarity infinity.
+                    inverse_emd.ix[i,'score'] = np.inf
+            except:
+                # if tokens is not complete and causing errors
+                inverse_emd.ix[i, 'score'] = 0
 
         inverse_emd['score'] = pd.to_numeric(inverse_emd['score'], errors='ignore')
         return inverse_emd
@@ -434,34 +436,32 @@ class customized_recommender(object):
 
         Return the Earth mover's distance between two list of words
         """
-        # try:
+#        try:
         word_dict = list(set(l1+l2))
         first_histogram = np.array([float(l1.count(w)) for w in word_dict])
         second_histogram = np.array([float(l2.count(w)) for w in word_dict])
 
         # calculate the word-2-word similarity
         nw = len(word_dict)
-        # ww_sim = np.zeros((nw,nw))
-        # for i,w1 in enumerate(word_dict):
-        #     ww_sim[i,i] = 1
-        #     for j,w2 in enumerate(word_dict[i+1:]):
-        #         ww_sim[i,i+j+1] = self.word_similarity(w1,w2,word_model)
-        #         ww_sim[i+j+1,i] = ww_sim[i,i+j+1]
-        # ww_distance = 1-ww_sim
+    # ww_sim = np.zeros((nw,nw))
+    # for i,w1 in enumerate(word_dict):
+    #     ww_sim[i,i] = 1
+    #     for j,w2 in enumerate(word_dict[i+1:]):
+    #         ww_sim[i,i+j+1] = self.word_similarity(w1,w2,word_model)
+    #         ww_sim[i+j+1,i] = ww_sim[i,i+j+1]
+    # ww_distance = 1-ww_sim
 
         ww_distance = np.zeros((nw,nw))
         for i,w1 in enumerate(word_dict):
-            ww_sim[i,i] = 1
+            ww_distance[i,i] = 0
             for j,w2 in enumerate(word_dict[i+1:]):
                 v1 = word_model.wv[w1]
                 v2 = word_model.wv[w2]
-                print(np.linalg.norm(v1-v2))
                 ww_distance[i+j+1,i] = np.linalg.norm(v1-v2)
                 ww_distance[i,i+j+1] = np.linalg.norm(v1-v2)
         return emd(first_histogram, second_histogram, ww_distance)
 
         # except:
-        #     raise
         #     # if the two lists are identical
         #     return 1
 

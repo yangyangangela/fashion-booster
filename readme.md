@@ -109,7 +109,7 @@ A natural way to proceed would be clustering the brand according to their simila
 
 Here we visualize the similaries for top rented brands.
 <p align="center">
-<img src="img/task3/brand_similarity.png" width="300">
+<img src="img/task3/brand_similarity.png" width="400">
 </p>
 Not every word in the description contributes to the **characteristic** of the item.
 
@@ -142,7 +142,7 @@ Particulary, We define the inverse of description distance as the the similarity
 
 
 <p align="center">
-<img src="img/task3/word2vec_description_similarity.png" width="300">
+<img src="img/task3/word2vec_description_similarity.png" width="500">
 </p>
 
 

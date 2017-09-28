@@ -97,20 +97,53 @@ might not provide their most frequently used emails.
 
 
 <p align="center">
-<img src="img/task2/feature_importance.png" width="200">
+<img src="img/task2/feature_importance.png" width="300">
 </p>
 
 
 ## Task 3: Customized recommendation for users
 The recommendation is based on the renters'shopping history and the similarities between all available items using the description text of items stored in my client's database. The model also takes advantages of renters' size records, brand preferences, and cloth type preferences.
+We start with collaborative recommendations. We use the order history on the website to calculate the probability of co-rent for items from two different brands. This probability serves as a natural similarity measure for brands.
 
-![brand](img/task3/brand_similarity.png)
+A natural way to proceed would be clustering the brand according to their similarity matrix. However, we don't have enough data to do that b/c there are only around 20 brands having multiple rental history. Instead, when we make recommendations based on an user's shopping history, we will first select some similar brands and make further filtering from all the items of these similar brands.
 
-![tokenizer](img/task3/example_tokenizer.png)
+Here we visualize the similaries for top rented brands.
+<p align="center">
+<img src="img/task3/brand_similarity.png" width="300">
+</p>
+Not every word in the description contributes to the **characteristic** of the item.
 
-![description](img/task3/word2vec_description_similarity.png)
+When we tokenize the description, we first remove the meaningless stop-words (using the list provided by **nltk** package), such as *he, is, at, which, and on*.
+
+Second, we notice that neither *verb* (such as can, do, are) or *adv* (such as very, great, slightly) contribute much. We use the **part-of-speech** package to class words into nouns, verbs, adjectives, and adverbs. We only keep the nons and adjectives in tokens.
+
+Here is the example on tokenized descriptions. Now the tokens mostly contain meaningful words!
+<p align="center">
+<img src="img/task3/example_tokenizer.png" width="300">
+</p>
+### Word2vec
+
+With the tokens in hand, one way to compare the similarities would be the bag-of-words counts. However, I don't have enough description items in my inventory, the recurrence of words is low and the description is highly determined by the lenders' personal language choice. 
+
+Therefore, we use the word2vec method to first convert each word in the tokenized description to a vector, and then use the cosine similarity between words to calculate the similarities between words.
 
 
+With the similarity metric between words in hand, we use state-of-the-art method published in [ICCV 2015](https://dl.acm.org/citation.cfm?id=3045221) to calculate the distance between descriptions.
+
+This method regards each tokenized description as a distribution of sands over some spots (each spot represent a word). The similarity between words can be viewd as a distance metric between spots. In particular, higher similarity score indicates shorter distances between words. The Earth Mover's Distance is the minimum *energy* that costs to reshape one sand distribution to the other. This distance is the measure on how clost two descriptions are. 
+
+
+The method doesn't based on the count of same words nor on the sequence of words, which makes it especially suitable for my problem: 
+
+- Sequence of words is not important here b/c all descriptions are input by users. That is to say, there are grammer issues and incomplete senetenece.
+- Word counts similarity is difficult here b/c the number of descpritions is limited. Users have some preference on wording. And there are not too much repeating words in the corpus. 
+
+Particulary, We define the inverse of description distance as the the similarity.
+
+
+<p align="center">
+<img src="img/task3/word2vec_description_similarity.png" width="300">
+</p>
 
 
 

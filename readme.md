@@ -28,37 +28,65 @@ One of the most important metric related to financial modeling for startups
  a metric evaluating the time span to recoup investments. This number can be estimated by 
  two other equally import metrics:
  
- - CAC, as you probably know, is the cost of convincing a potential customer to buy a product or service. 
+ - **CAC**, as you probably know, is the cost of convincing a potential customer to buy a product or service. 
  Here I defined it as the cost to acquiring an actual shopper (in other words, renter).
- - LTV is the projected revenue that a customer will generate during their lifetime. 
+ - **LTV** is the projected revenue that a customer will generate during their lifetime. 
  Because for this newly born startup it's hard to estimate lifespan a renter. 
- Here I used a modified version *LTV per year*.
+ Here I used a modified version **LTV per year**.
  
  ![market_analysis](img/task1/market_analysis.png)
  
 
-The payback period (in months) is then defined as CAC, divided by LTV, and multiply by 12.
+The payback period (in months) is then defined as **CAC, divided by LTV, and multiplied by 12**.
 
-In this article, we will explain the CAC metric in more detail, how you can measure it, and what steps you can take to improve it.
-https://blog.kissmetrics.com/customer-acquisition-cost/
-
-
-First, I performed a series of market analysis using my client's database. 
-
-
+*To protect the information of this company, detailed analysis results can only be found in the notebooks.
+The actual numbers are hided for all graphs, and the true database link is not provided.*
 
 
 ## Task 2: Predicting user conversion
+Will a registered user convert to an actual renter? 
+Understanding user profile can help to increase conversion rate, a key metric
+for E-commerce. To help my client understand what are strong indicators
+ determining conversion rate, I built a Logistic Regression model 
+ to predict whether a register user can convert. 
+ 
+ First, I extracted some categorical features and numerical features
+ from available user data and shopping history.
+
 
 ![feature_engineer](img/task2/feature_engineer.png)
+
+### Ensemble classifier
+
+Before moving on to train the model, we notice that our data is 
+highly imbalanced. Only 3% of the users can convert to renters, with 97% of them not. 
+Here I used a combination of undersampling and ensemble method. In particular,
+I trained 20 models with each using 80% randomly selected renters and equal number
+of non-renters. These 20 models are made as an ensemble classifier, in which
+the classification is determined by the decision of majority of models.
+
 ![imbalanced_data](img/task2/imbalanced_data.png)
+
+### Validation
+
+The test of the ensemble classifier is performed on 20% of the orginal imbalanced 
+data. 
+
+In the following graph, I intentionally delete the feature *sign_in_counts* b/c this
+feature is too strong that the classification accuracy could be as high as 0.99 when adding
+it back in. This feature dims the importance of all other features.
+
 ![confusion_matrix](img/task2/confusion_matrix.png)
+
+### Feature Importance
+
 ![feature_importance](img/task2/feature_importance.png)
 
 
 
 
 ## Task 3: Customized recommendation for users
+The recommendation is based on the renters'shopping history and the similarities between all available items using the description text of items stored in my client's database. The model also takes advantages of renters' size records, brand preferences, and cloth type preferences.
 
 ![brand](img/task3/brand_similarity.png)
 

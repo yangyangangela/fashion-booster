@@ -65,7 +65,9 @@ I trained 20 models with each using 80% randomly selected renters and equal numb
 of non-renters. These 20 models are made as an ensemble classifier, in which
 the classification is determined by the decision of majority of models.
 
-![imbalanced_data](img/task2/imbalanced_data.png)
+<p align="center">
+<img src="img/task2/imbalanced_data.png" width="300">
+</p>
 
 ### Validation
 
@@ -76,16 +78,27 @@ In the following graph, I intentionally delete the feature *sign_in_counts* b/c 
 feature is too strong that the classification accuracy could be as high as 0.99 when adding
 it back in. This feature dims the importance of all other features.
 
-![confusion_matrix](img/task2/confusion_matrix.png = 250x)
-
-<img src="img/task2/confusion_matrix.png" width="48">
+<p align="center">
+<img src="img/task2/confusion_matrix.png" width="300">
+</p>
 
 
 ### Feature Importance
 
-![feature_importance](img/task2/feature_importance.png)
+The average coefficient weights tell us on how predictive the features are.
+Several interesting findings here.
+
+- Although the age determines how much one spend on the website, it is **not**
+a strong indicator on conversion.
+- Domestic cities did a better job than international cities, which is later
+ confirmed by my clients b/c they do have representatives in big domestic cities.
+- Email account is a strong negative indicator, registering by FaceBook or hotmail 
+might not provide their most frequently used emails.
 
 
+<p align="center">
+<img src="img/task2/feature_importance.png" width="200">
+</p>
 
 
 ## Task 3: Customized recommendation for users

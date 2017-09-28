@@ -2,22 +2,53 @@
 
 ## What is Fashion Booster?
 Fashion Booster is a consulting project that I did for a fashion E-commerce
-startup. This starup is an online marketplace,
+startup.
+ My client company provides an online marketplace,
  enabling women to lend or rent fashion items 
  including vacation bags, accessories, shoes, and clothes.
-It is an *Airbnb of women's closets*.
+It is an *Airbnb of women's closets*. 
 
-In this project, I analyzed their user data and shopping data 
-[Task 1: Market Analysis](#t1)
+ This project provides a series of data-driven solutions for my client
+ to improve their strategy.
+ In particular, I performed extensive market analysis to estimate important metrics
+ that investors care most about [Task 1: Market Analysis](#t1). 
+ To help my client understand the profile of ideal customers, 
+ I also built a highly interpretable model to predict whether a customer will convert 
+ [Task 2: Predicting user conversion](#t2).
+ Finally, I built a recommendation system for customized 
+ newsletter delivery to increase their returning users
+ [Task 3: Customized recommendation for users](#3).
+ 
 
 
 ## Task 1: Market Analysis
+
+One of the most important metric related to financial modeling for startups
+ is [payback period](http://www.portocapital.com/startup-financial-advice-metrics-payback-irr-gross-margin-porto-capital/),
+ a metric evaluating the time span to recoup investments. This number can be estimated by 
+ two other equally import metrics:
+ 
+ - CAC, as you probably know, is the cost of convincing a potential customer to buy a product or service. 
+ Here I defined it as the cost to acquiring an actual shopper (in other words, renter).
+ - LTV is the projected revenue that a customer will generate during their lifetime. 
+ Because for this newly born startup it's hard to estimate lifespan a renter. 
+ Here I used a modified version *LTV per year*.
+ 
+ ![market_analysis](img/task1/market_analysis.png)
+ 
+
+The payback period (in months) is then defined as CAC, divided by LTV, and multiply by 12.
+
+In this article, we will explain the CAC metric in more detail, how you can measure it, and what steps you can take to improve it.
+https://blog.kissmetrics.com/customer-acquisition-cost/
+
+
 First, I performed a series of market analysis using my client's database. 
-![market_analysis](img/task1/market_analysis.png)
 
 
 
-## Task 2: Predict conversion on imbalanced dataset
+
+## Task 2: Predicting user conversion
 
 ![feature_engineer](img/task2/feature_engineer.png)
 ![imbalanced_data](img/task2/imbalanced_data.png)

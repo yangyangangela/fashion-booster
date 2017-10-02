@@ -67,8 +67,10 @@ To help my client understand what are the strong factors that
  contribute most to the revenue. Interestingly, users from 35-40 spend
  most for in a single order.
 
+<p align="center">
+<img src="img/task2/feature_engineer.png" width="500">
+</p>
 
-![feature_engineer](img/task2/feature_engineer.png)
 
 
 ### Ensemble classifier
@@ -222,7 +224,7 @@ are input by users and naturally, there are grammar issues and incomplete senten
 Here is an example from my recommendation system.
 
 <p align="center">
-<img src="img/task3/recommendation.png" width="500">
+<img src="img/task3/recommendation.png" width="700">
 </p>
 
 

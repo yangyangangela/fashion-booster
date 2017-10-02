@@ -34,10 +34,11 @@ One of the most important metric related to financial modeling for startups
 The lifespan of customers for a newly born startup is hard to estimate.
  Here I used a slightly modified metric **LTV per year**.
  
- ![market_analysis](img/task1/market_analysis.png)
- 
+ <p align="center">
+<img src="img/task1/market_analysis.png" width="500">
+</p>
 
-The payback period (in months) is then defined as *CAC, divided by LTV then multiplied by 12*.
+The payback period (in months) is then defined as CAC, divided by LTV then multiplied by 12.
 
 *To protect the information of this company, detailed analysis results can only be found in the notebooks.
 The actual numbers are hided for all graphs, and the link to the company's database is not provided.*
@@ -190,7 +191,7 @@ in close proximity to one another.
 
 
 
-#### 3.Earth Mover's Distance (Word Mover's Distance)
+#### 3. Earth Mover's Distance (Word Mover's Distance)
 Word vector is a semantically meaningful representation of words that 
 makes use of the co-occurrence of words in a large corpus.
 With the word vector space in hand,

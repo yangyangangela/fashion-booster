@@ -162,7 +162,7 @@ Among the items coming from the selected brands,
  The similarity is determined by analyzing the semantic similarity 
  between item descriptions, through the following three steps:
  
- ####1. Pick up key words
+ #### 1. Pick up key words
  
  Not every word in the description contributes to the characteristic
  of items. In this step, I only keep the words that are most relevant
@@ -176,7 +176,7 @@ Here is the example on tokenized descriptions. Now the tokens mostly contain mea
 <img src="img/task3/example_tokenizer.png" width="300">
 </p>
 
-####2. Word2vec
+#### 2. Word2vec
 
 With the keywords in hand,
  I used the **word2vec** method to convert each keyword 
@@ -188,7 +188,7 @@ in close proximity to one another.
 
 
 
-####3.Earth Mover's Distance
+#### 3.Earth Mover's Distance (Word Mover's Distance)
 Word vector is a semantically meaningful representation of words that 
 makes use of the co-occurrence of words in a large corpus.
 With the word vector space in hand,
@@ -196,7 +196,11 @@ I use state-of-the-art method published in [ICML 2015](https://dl.acm.org/citati
 This method calculates the dissimilarity between documents as 
 the minimum amount of distance 
 that the embedded words of one document need to "travel" 
-to reach the embedded words of another document.
+to reach the embedded words of another document. The authors
+defined this distance as Word Mover's Distance given the fact that
+this distance can be exactly mapped to the Earth's mover's Distance, also
+  known as [Wasserstein Distance](https://en.wikipedia.org/wiki/Earth_mover%27s_distance), a 
+metric to compare distributions on D-dimensional space.
 
 This method is particularly suitable for my problem because:
 
